@@ -72,8 +72,8 @@ class BaS_Net(nn.Module):
 
         self.softmax = nn.Softmax(dim=1)
 
-        self.num_segments = num_segments  # 750
-        self.k = num_segments // 8  # 750/8 , top_K
+        self.num_segments = num_segments  # 750， 特征序列的最大长度
+        self.k = num_segments // 8  # 750/8 , 选取top_k个单词计算视频级动作类别
     
 
     def forward(self, x):
