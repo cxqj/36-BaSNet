@@ -74,11 +74,11 @@ def save_best_record_thumos(test_info, file_path):
   
 
 def minmax_norm(act_map):
-    max_val = nn.ReLU()(torch.max(act_map, dim=1)[0])
-    min_val = nn.ReLU()(torch.min(act_map, dim=1)[0])
+    max_val = nn.ReLU()(torch.max(act_map, dim=1)[0])   # (B, C+1)
+    min_val = nn.ReLU()(torch.min(act_map, dim=1)[0])   # (B, C+1)
     delta = max_val - min_val
     delta[delta <=0] = 1
-    ret = (act_map - min_val) / delta
+    ret = (act_map - min_val) / delta  # (B,T,C+1)
 
     return ret
 
