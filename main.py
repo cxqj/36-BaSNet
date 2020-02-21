@@ -12,7 +12,7 @@ from thumos_features import *
 
 
 if __name__ == "__main__":
-    args = parse_args()
+    args = parse_args() 
     if args.debug:
         pdb.set_trace()
 
