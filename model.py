@@ -9,12 +9,12 @@ class Filter_Module(nn.Module):
             nn.Conv1d(in_channels=self.len_feature, out_channels=512, kernel_size=1,
                     stride=1, padding=0),
             nn.LeakyReLU()
-        )
+        )   # 2048-->512
         self.conv_2 = nn.Sequential(
             nn.Conv1d(in_channels=512, out_channels=1, kernel_size=1,
                     stride=1, padding=0),
             nn.Sigmoid()
-        )
+        )  # 512-->1
 
     def forward(self, x):
         # x: (B, T, F)        
@@ -28,7 +28,7 @@ class Filter_Module(nn.Module):
         
 
 class CAS_Module(nn.Module):
-    def __init__(self, len_feature, num_classes):
+    def __init__(self, len_feature, num_classes):  # 2048, 20
         super(CAS_Module, self).__init__()
         self.len_feature = len_feature
         self.conv_1 = nn.Sequential(
@@ -46,7 +46,7 @@ class CAS_Module(nn.Module):
         self.conv_3 = nn.Sequential(
             nn.Conv1d(in_channels=2048, out_channels=num_classes + 1, kernel_size=1,
                       stride=1, padding=0, bias=False)
-        )
+        )  # 2048-->20 + 1
         self.drop_out = nn.Dropout(p=0.7)
 
     def forward(self, x):
@@ -62,7 +62,7 @@ class CAS_Module(nn.Module):
         return out
 
 class BaS_Net(nn.Module):
-    def __init__(self, len_feature, num_classes, num_segments):
+    def __init__(self, len_feature, num_classes, num_segments):  # 2048, 20, 750
         super(BaS_Net, self).__init__()
         self.filter_module = Filter_Module(len_feature)
         self.len_feature = len_feature
@@ -72,8 +72,8 @@ class BaS_Net(nn.Module):
 
         self.softmax = nn.Softmax(dim=1)
 
-        self.num_segments = num_segments
-        self.k = num_segments // 8
+        self.num_segments = num_segments  # 750
+        self.k = num_segments // 8  # 750/8 , top_K
     
 
     def forward(self, x):
@@ -91,3 +91,5 @@ class BaS_Net(nn.Module):
         score_supp = self.softmax(score_supp)
 
         return score_base, cas_base, score_supp, cas_supp, fore_weights
+    
+    
