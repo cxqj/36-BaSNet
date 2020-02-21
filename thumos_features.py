@@ -71,7 +71,7 @@ class ThumosFeature(data.Dataset):
             vid_num_seg = rgb_feature.shape[0]
 
             if self.sampling == 'random':
-                sample_idx = self.random_perturb(rgb_feature.shape[0])
+                sample_idx = self.random_perturb(rgb_feature.shape[0])   # 特征采样的索引，别的地方也可以借鉴这个方式
             elif self.sampling == 'uniform':
                 sample_idx = self.uniform_sampling(rgb_feature.shape[0])
             else:
