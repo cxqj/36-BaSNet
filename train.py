@@ -5,7 +5,7 @@ import numpy as np
 class BaS_Net_loss(nn.Module):
     def __init__(self, alpha):
         super(BaS_Net_loss, self).__init__()
-        self.alpha = alpha
+        self.alpha = alpha  #正则化项系数
         self.ce_criterion = nn.BCELoss()
 
     def forward(self, score_base, score_supp, fore_weights, label):
@@ -19,7 +19,7 @@ class BaS_Net_loss(nn.Module):
 
         loss_base = self.ce_criterion(score_base, label_base)
         loss_supp = self.ce_criterion(score_supp, label_supp)
-        loss_norm = torch.mean(torch.norm(fore_weights, p=1, dim=1))
+        loss_norm = torch.mean(torch.norm(fore_weights, p=1, dim=1))  #返回输入张量给定维dim 上每行的p 范数。 
 
         loss_total = loss_base + loss_supp + self.alpha * loss_norm
 
