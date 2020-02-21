@@ -17,8 +17,8 @@ class Config(object):
         self.output_path = args.output_path
         self.log_path = args.log_path
         self.num_workers = args.num_workers
-        self.alpha = args.alpha
-        self.class_thresh = args.class_th
+        self.alpha = args.alpha  # 0.0001
+        self.class_thresh = args.class_th   # 0.25
         self.act_thresh = np.arange(0.0, 0.25, 0.025)
         self.scale = 24
         self.gt_path = os.path.join(self.data_path, 'gt.json')
