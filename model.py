@@ -17,9 +17,9 @@ class Filter_Module(nn.Module):
         )  # 512-->1
 
     def forward(self, x):
-        # x: (B, T, F)        
+        # x: (B, T, C)        
         out = x.permute(0, 2, 1)
-        # out: (B, F, T)
+        # out: (B, C, T)
         out = self.conv_1(out)
         out = self.conv_2(out)
         out = out.permute(0, 2, 1)
@@ -50,9 +50,9 @@ class CAS_Module(nn.Module):
         self.drop_out = nn.Dropout(p=0.7)
 
     def forward(self, x):
-        # x: (B, T, F)
+        # x: (B, T, C)
         out = x.permute(0, 2, 1)
-        # out: (B, F, T)
+        # out: (B, C, T)
         out = self.conv_1(out)
         out = self.conv_2(out)
         out = self.drop_out(out)
@@ -79,13 +79,13 @@ class BaS_Net(nn.Module):
     def forward(self, x):
         fore_weights = self.filter_module(x)
 
-        x_supp = fore_weights * x
+        x_supp = fore_weights * x   # (B,T,1)
 
-        cas_base = self.cas_module(x)
-        cas_supp = self.cas_module(x_supp)
+        cas_base = self.cas_module(x)  # (B, T, C + 1)
+        cas_supp = self.cas_module(x_supp)  # (B, T, C + 1)
 
-        score_base = torch.mean(torch.topk(cas_base, self.k, dim=1)[0], dim=1)
-        score_supp = torch.mean(torch.topk(cas_supp, self.k, dim=1)[0], dim=1)
+        score_base = torch.mean(torch.topk(cas_base, self.k, dim=1)[0], dim=1)  # (B, C+1)
+        score_supp = torch.mean(torch.topk(cas_supp, self.k, dim=1)[0], dim=1)  # (B, C+1)
 
         score_base = self.softmax(score_base)
         score_supp = self.softmax(score_supp)
