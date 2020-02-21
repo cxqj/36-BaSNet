@@ -11,9 +11,21 @@ class BaS_Net_loss(nn.Module):
     def forward(self, score_base, score_supp, fore_weights, label):
         loss = {}
 
+        """
+        label_base:
+            [[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1]]
+        label_supp:
+            [[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0]]
+        """
         label_base = torch.cat((label, torch.ones((label.shape[0], 1)).cuda()), dim=1)
         label_supp = torch.cat((label, torch.zeros((label.shape[0], 1)).cuda()), dim=1)
         
+        """
+        label_base:
+            [[0,0,0,0,0,0,0,0,0,0.5,0,0,0,0,0,0.5],[0,0,0,0,0,0,0,0,0,0.5,0,0,0,0,0,0.5]]
+        label_supp:
+            [[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0]]
+        """
         label_base = label_base / torch.sum(label_base, dim=1, keepdim=True)
         label_supp = label_supp / torch.sum(label_supp, dim=1, keepdim=True)
 
@@ -43,7 +55,7 @@ def train(net, train_loader, loader_iter, optimizer, criterion, logger, step):
 
     optimizer.zero_grad()
 
-    score_base, _, score_supp, _, fore_weights = net(_data)
+    score_base, _, score_supp, _, fore_weights = net(_data)  # (B, C+1), (B, C+1)
 
     cost, loss = criterion(score_base, score_supp, fore_weights, _label)
 
