@@ -8,16 +8,16 @@ import random
 import config
 
 
-def upgrade_resolution(arr, scale):
-    x = np.arange(0, arr.shape[0])
-    f = interp1d(x, arr, kind='linear', axis=0, fill_value='extrapolate')
-    scale_x = np.arange(0, arr.shape[0], 1 / scale)
-    up_scale = f(scale_x)
+def upgrade_resolution(arr, scale):  # (T,1,1), scale: 24
+    x = np.arange(0, arr.shape[0])  
+    f = interp1d(x, arr, kind='linear', axis=0, fill_value='extrapolate')  # y = f(x)
+    scale_x = np.arange(0, arr.shape[0], 1 / scale)  
+    up_scale = f(scale_x)  # (18000,1,1)
     return up_scale
 
-
+# tList : [4,5,6,....17999] , wtcam: [[[0]],[[0]],....[[0.0029]]]
 def get_proposal_oic(tList, wtcam, final_score, c_pred, scale, v_len, sampling_frames, num_segments, lambda_=0.25, gamma=0.2):
-    t_factor = (16 * v_len) / (scale * num_segments * sampling_frames)
+    t_factor = (16 * v_len) / (scale * num_segments * sampling_frames)  # 24*750*25
     temp = []
     for i in range(len(tList)):
         c_temp = []
@@ -25,23 +25,23 @@ def get_proposal_oic(tList, wtcam, final_score, c_pred, scale, v_len, sampling_f
         if temp_list.any():
             grouped_temp_list = grouping(temp_list)
             for j in range(len(grouped_temp_list)):
-                inner_score = np.mean(wtcam[grouped_temp_list[j], i, 0])
-
-                len_proposal = len(grouped_temp_list[j])
-                outer_s = max(0, int(grouped_temp_list[j][0] - lambda_ * len_proposal))
-                outer_e = min(int(wtcam.shape[0] - 1), int(grouped_temp_list[j][-1] + lambda_ * len_proposal))
-
+                inner_score = np.mean(wtcam[grouped_temp_list[j], i, 0])  # 0.0055
+                # 将当前的到的proposal长度拓展1/4
+                len_proposal = len(grouped_temp_list[j])  # 19
+                outer_s = max(0, int(grouped_temp_list[j][0] - lambda_ * len_proposal))  # 17976
+                outer_e = min(int(wtcam.shape[0] - 1), int(grouped_temp_list[j][-1] + lambda_ * len_proposal))  # 17980
+                # [17976,17977,17978,17979,17980]
                 outer_temp_list = list(range(outer_s, int(grouped_temp_list[j][0]))) + list(range(int(grouped_temp_list[j][-1] + 1), outer_e + 1))
                 
                 if len(outer_temp_list) == 0:
                     outer_score = 0
                 else:
-                    outer_score = np.mean(wtcam[outer_temp_list, i, 0])
+                    outer_score = np.mean(wtcam[outer_temp_list, i, 0])  # 0.0
 
-                c_score = inner_score - outer_score + gamma * final_score[c_pred[i]]
-                t_start = grouped_temp_list[j][0] * t_factor
+                c_score = inner_score - outer_score + gamma * final_score[c_pred[i]]  # 0.0055
+                t_start = grouped_temp_list[j][0] * t_factor   # t_factor : 0.0094
                 t_end = (grouped_temp_list[j][-1] + 1) * t_factor
-                c_temp.append([c_pred[i], c_score, t_start, t_end])
+                c_temp.append([c_pred[i], c_score, t_start, t_end])  # [5,0.0055,169.42,169.6]
         temp.append(c_temp)
     return temp
 
@@ -55,7 +55,7 @@ def result2json(result):
             result_file.append(line)
     return result_file
 
-
+# 聚合连续的区间
 def grouping(arr):
     return np.split(arr, np.where(np.diff(arr) != 1)[0] + 1)
 
