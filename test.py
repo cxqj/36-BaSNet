@@ -31,6 +31,12 @@ def test(net, config, logger, test_loader, test_info, step, model_file=None):
             _data = _data.cuda()
             _label = _label.cuda()
 
+            """
+            cas_base: (1,T,21)
+            score_supp: (1,21) 
+            cas_supp: (1,T,21)
+            fore_weights: (1,T,1)
+            """
             _, cas_base, score_supp, cas_supp, fore_weights = net(_data)
 
             label_np = _label.cpu().numpy()
@@ -39,31 +45,32 @@ def test(net, config, logger, test_loader, test_info, step, model_file=None):
             score_np[np.where(score_np < config.class_thresh)] = 0
             score_np[np.where(score_np >= config.class_thresh)] = 1
 
-            correct_pred = np.sum(label_np == score_np, axis=1)
+            correct_pred = np.sum(label_np == score_np, axis=1)  # 统计的是预测的类别和label能够对应上的数目，只有20个类别全部预测正确才认为这个视频预测正确
 
-            num_correct += np.sum((correct_pred == config.num_classes).astype(np.float32)) # 每个类别都预测正确才认为是正确的
-            num_total += correct_pred.shape[0]
+            num_correct += np.sum((correct_pred == config.num_classes).astype(np.float32)) # 预测正确的视频数1
+            num_total += correct_pred.shape[0]  # 视频数
             
+            # 对数值进行限定，更加稳定
             cas_base = utils.minmax_norm(cas_base) # (B,T,C+1)
             cas_supp = utils.minmax_norm(cas_supp) # (B,T,C+1)
 
-            pred = np.where(score_np > config.class_thresh)[0]  # 0.25， 预测动作类别
+            pred = np.where(score_np > config.class_thresh)[0]  # 0.25， 当前视频预测动作类别索引
 
             if pred.any():
                 cas_pred = cas_supp[0].cpu().numpy()[:, pred]  # (T, C+1)-->T
                 cas_pred = np.reshape(cas_pred, (config.num_segments, -1, 1)) # (T,1,1)
-                # [[[-0.035]],[[-0.025]],.....[[0.0029]]]
-                cas_pred = utils.upgrade_resolution(cas_pred, config.scale)    # scale:24  (18000,1,1)
+                # [[[-0.035]],[[-0.025]],.....[[0.0029]]] (18000,1,1)
+                cas_pred = utils.upgrade_resolution(cas_pred, config.scale)    # scale:24
                 
                 proposal_dict = {}
 
                 for i in range(len(config.act_thresh)):
-                    cas_temp = cas_pred.copy()
+                    cas_temp = cas_pred.copy() # (18000,1,1)
                     # [0,1,2,3,1531,1532,.......9910]
                     zero_location = np.where(cas_temp[:, :, 0] < config.act_thresh[i])
                     cas_temp[zero_location] = 0
 
-                    seg_list = []
+                    seg_list = [] # [[],[],..[]]
                     for c in range(len(pred)):
                         pos = np.where(cas_temp[:, c, 0] > 0)  # [4,5,6,.....17999]
                         seg_list.append(pos)
