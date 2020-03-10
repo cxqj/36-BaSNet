@@ -16,11 +16,11 @@ class ThumosFeature(data.Dataset):
         if seed >= 0:
             utils.set_seed(seed)
 
-        self.mode = mode
-        self.modal = modal
-        self.feature_fps = feature_fps
-        self.num_segments = num_segments
-        self.len_feature = len_feature
+        self.mode = mode  # 'train'/'test'
+        self.modal = modal # 'all'
+        self.feature_fps = feature_fps  # 25
+        self.num_segments = num_segments  # 750
+        self.len_feature = len_feature  # 2048
 
         if self.modal == 'all':
             self.feature_path = []
@@ -41,11 +41,12 @@ class ThumosFeature(data.Dataset):
         self.anno = json.load(anno_file)
         anno_file.close()
 
+        # 动作类对应的idx
         self.class_name_to_idx = dict((v, k) for k, v in config.class_dict.items())        
-        self.num_classes = len(self.class_name_to_idx.keys())
+        self.num_classes = len(self.class_name_to_idx.keys())  # 20
 
-        self.supervision = supervision
-        self.sampling = sampling
+        self.supervision = supervision  # weak 以弱监督方式运行
+        self.sampling = sampling  # 在选取视频帧时的方式，训练时:random,测试时:uniform
 
 
     def __len__(self):
