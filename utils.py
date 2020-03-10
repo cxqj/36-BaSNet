@@ -26,15 +26,17 @@ sampling_frames ：25
 num_segments： 750
 """
 def get_proposal_oic(tList, wtcam, final_score, c_pred, scale, v_len, sampling_frames, num_segments, lambda_=0.25, gamma=0.2):
-    t_factor = (16 * v_len) / (scale * num_segments * sampling_frames)  # 24*750*25
+    # 24*750*25 当前拓展后每一个时序位置对应原先视频中的长度，例如当前拓展后的时序长度为18000，则当前序列中每个位置对应
+    # 视频中的0.0094秒
+    t_factor = (16 * v_len) / (scale * num_segments * sampling_frames)  
     temp = []
     for i in range(len(tList)):
         c_temp = []
         temp_list = np.array(tList[i])[0]
         if temp_list.any():
-            grouped_temp_list = grouping(temp_list)
+            grouped_temp_list = grouping(temp_list)  # 聚合连续的索引区间
             for j in range(len(grouped_temp_list)):
-                inner_score = np.mean(wtcam[grouped_temp_list[j], i, 0])  # 0.0055
+                inner_score = np.mean(wtcam[grouped_temp_list[j], i, 0])  # 0.0055  内部区间内的每个时序位置分类得分和求平均得到当前区间的类别得分
                 # 将当前的到的proposal长度拓展1/4
                 len_proposal = len(grouped_temp_list[j])  # 19
                 outer_s = max(0, int(grouped_temp_list[j][0] - lambda_ * len_proposal))  # 17976
@@ -45,8 +47,8 @@ def get_proposal_oic(tList, wtcam, final_score, c_pred, scale, v_len, sampling_f
                 if len(outer_temp_list) == 0:
                     outer_score = 0
                 else:
-                    outer_score = np.mean(wtcam[outer_temp_list, i, 0])  # 0.0
-
+                    outer_score = np.mean(wtcam[outer_temp_list, i, 0])  # 0.0 外部区间的类别得分
+                # 内部的得分减去外部的得分得到当前提议的得分
                 c_score = inner_score - outer_score + gamma * final_score[c_pred[i]]  # 0.0055
                 t_start = grouped_temp_list[j][0] * t_factor   # t_factor : 0.0094
                 t_end = (grouped_temp_list[j][-1] + 1) * t_factor
