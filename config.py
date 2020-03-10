@@ -20,10 +20,10 @@ class Config(object):
         self.alpha = args.alpha  # 0.0001
         self.class_thresh = args.class_th   # 0.25
         self.act_thresh = np.arange(0.0, 0.25, 0.025)
-        self.scale = 24
+        self.scale = 24  # 这个是干嘛的
         self.gt_path = os.path.join(self.data_path, 'gt.json')
         self.model_file = args.model_file
-        self.seed = args.seed
+        self.seed = args.seed  # -1
         self.feature_fps = 25
         self.num_segments = 750
 
