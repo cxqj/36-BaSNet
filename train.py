@@ -5,7 +5,7 @@ import numpy as np
 class BaS_Net_loss(nn.Module):
     def __init__(self, alpha):
         super(BaS_Net_loss, self).__init__()
-        self.alpha = alpha  #正则化项系数
+        self.alpha = alpha  #正则化项系数 0.0001
         self.ce_criterion = nn.BCELoss()
 
     def forward(self, score_base, score_supp, fore_weights, label):
@@ -17,8 +17,9 @@ class BaS_Net_loss(nn.Module):
         label_supp:
             [[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0]]
         """
-        label_base = torch.cat((label, torch.ones((label.shape[0], 1)).cuda()), dim=1)
-        label_supp = torch.cat((label, torch.zeros((label.shape[0], 1)).cuda()), dim=1)
+        label_base = torch.cat((label, torch.ones((label.shape[0], 1)).cuda()), dim=1)  # 在最后添加背景类，base网络学习将背景类也区分出来
+        # 因为抑制网络的输入移除了背景帧，因此抑制网络需要尽可能区分最后一个类别不是背景类
+        label_supp = torch.cat((label, torch.zeros((label.shape[0], 1)).cuda()), dim=1) 
         
         """
         label_base:
@@ -26,7 +27,7 @@ class BaS_Net_loss(nn.Module):
         label_supp:
             [[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0]]
         """
-        label_base = label_base / torch.sum(label_base, dim=1, keepdim=True)
+        label_base = label_base / torch.sum(label_base, dim=1, keepdim=True)  #平均每个类别的权重
         label_supp = label_supp / torch.sum(label_supp, dim=1, keepdim=True)
 
         loss_base = self.ce_criterion(score_base, label_base)
