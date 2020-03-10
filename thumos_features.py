@@ -107,7 +107,7 @@ class ThumosFeature(data.Dataset):
         anno_list = self.anno['database'][vid_name]['annotations']
         label = np.zeros([self.num_classes], dtype=np.float32)  # [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
-        classwise_anno = [[]] * self.num_classes
+        classwise_anno = [[]] * self.num_classes  # 记录每个类别有的标注信息
 
         # 构建one_hot形式的label
         for _anno in anno_list:
