@@ -15,7 +15,16 @@ def upgrade_resolution(arr, scale):  # (T,1,1), scale: 24
     up_scale = f(scale_x)  # (18000,1,1)
     return up_scale
 
-# tList : [4,5,6,....17999] , wtcam: [[[0]],[[0]],....[[0.0029]]]
+"""
+tList: 得分大于指定阈值的position索引列表，预测的anchor就是索引列表中连续的区域
+wtcam：拓展后每个position位置的类别得分(18000,1,1) 
+final_score： 视频类别mask后的结果，例如：[0,0,0,1,0,0,0,0,0,1,0,0,0] 
+c_pred: 当前视频预测动作类别索引,[3,9] 
+scale:24 
+v_len: 特征序列的长度 
+sampling_frames ：25 
+num_segments： 750
+"""
 def get_proposal_oic(tList, wtcam, final_score, c_pred, scale, v_len, sampling_frames, num_segments, lambda_=0.25, gamma=0.2):
     t_factor = (16 * v_len) / (scale * num_segments * sampling_frames)  # 24*750*25
     temp = []
