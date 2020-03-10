@@ -125,3 +125,4 @@ def test(net, config, logger, test_loader, test_info, step, model_file=None):
 
         for i in range(tIoU_thresh.shape[0]):
             test_info["mAP@{:.1f}".format(tIoU_thresh[i])].append(mAP[i])
+            
