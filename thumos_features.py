@@ -53,7 +53,9 @@ class ThumosFeature(data.Dataset):
         return len(self.vid_list)
 
     def __getitem__(self, index):
-        data, vid_num_seg, sample_idx = self.get_data(index)
+        # data: 连接后的特征(T,C) vid_num_seg: 真实特征序列长度  sample_idx: 采样的序列索引
+        data, vid_num_seg, sample_idx = self.get_data(index)  
+        # label：[0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0]  temp_anno: 0
         label, temp_anno = self.get_label(index, vid_num_seg, sample_idx)
 
         return data, label, temp_anno, self.vid_list[index], vid_num_seg
@@ -67,7 +69,7 @@ class ThumosFeature(data.Dataset):
             rgb_feature = np.load(os.path.join(self.feature_path[0],
                                     vid_name + '.npy')).astype(np.float32)
             flow_feature = np.load(os.path.join(self.feature_path[1],
-                                    vid_name + '.npy')).astype(np.float32)
+                                    vid_name + '.npy')).astype(np.float32)  #(T,C)
 
             vid_num_seg = rgb_feature.shape[0]
 
@@ -78,10 +80,10 @@ class ThumosFeature(data.Dataset):
             else:
                 raise AssertionError('Not supported sampling !')
 
-            rgb_feature = rgb_feature[sample_idx]
-            flow_feature = flow_feature[sample_idx]
+            rgb_feature = rgb_feature[sample_idx]   # (750,1024)
+            flow_feature = flow_feature[sample_idx] # (750,1024)
 
-            feature = np.concatenate((rgb_feature, flow_feature), axis=1)
+            feature = np.concatenate((rgb_feature, flow_feature), axis=1)  # (750,2048)
         else:
             feature = np.load(os.path.join(self.feature_path,
                                     vid_name + '.npy')).astype(np.float32)
@@ -101,11 +103,13 @@ class ThumosFeature(data.Dataset):
 
     def get_label(self, index, vid_num_seg, sample_idx):
         vid_name = self.vid_list[index]
+        #[{'segments':[18.6,24.8],'label':'HighJump'},{'segments':[18.6,24.8],'label':'HighJump'}]
         anno_list = self.anno['database'][vid_name]['annotations']
-        label = np.zeros([self.num_classes], dtype=np.float32)
+        label = np.zeros([self.num_classes], dtype=np.float32)  # [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
         classwise_anno = [[]] * self.num_classes
 
+        # 构建one_hot形式的label
         for _anno in anno_list:
             label[self.class_name_to_idx[_anno['label']]] = 1
             classwise_anno[self.class_name_to_idx[_anno['label']]].append(_anno)
@@ -133,7 +137,7 @@ class ThumosFeature(data.Dataset):
 
             return label, torch.from_numpy(temp_anno)
 
-
+    # 随机采样的方式，生成750个索引(有些时间位置可以重复)
     def random_perturb(self, length):
         if self.num_segments == length:
             return np.arange(self.num_segments).astype(int)
@@ -149,7 +153,7 @@ class ThumosFeature(data.Dataset):
                     samples[i] = np.random.choice(range(int(samples[i]), length))
                 else:
                     samples[i] = int(samples[i])
-        return samples.astype(int)
+        return samples.astype(int)  # 例如：[0,0,0,1,1,2,2,.....,480] shape：750
 
 
     def uniform_sampling(self, length):
