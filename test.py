@@ -6,7 +6,13 @@ import os
 import json
 from eval.eval_detection import ANETdetection
 from tqdm import tqdm
+"""
+test_info = {"step": [], "test_acc": [], "average_mAP": [],
+                "mAP@0.1": [], "mAP@0.2": [], "mAP@0.3": [],
+                "mAP@0.4": [], "mAP@0.5": [], "mAP@0.6": [],
+                "mAP@0.7": [], "mAP@0.8": [], "mAP@0.9": []}
 
+"""
 def test(net, config, logger, test_loader, test_info, step, model_file=None):
     with torch.no_grad():
         net.eval()
@@ -25,7 +31,7 @@ def test(net, config, logger, test_loader, test_info, step, model_file=None):
         load_iter = iter(test_loader)
         
         for i in range(len(test_loader.dataset)):
-
+            # _data: 视频特征  _label : 视频标签  vid_name: 视频名称 vid_num_seg:视频特征序列实际长度
             _data, _label, _, vid_name, vid_num_seg = next(load_iter)
 
             _data = _data.cuda()
@@ -40,9 +46,9 @@ def test(net, config, logger, test_loader, test_info, step, model_file=None):
             _, cas_base, score_supp, cas_supp, fore_weights = net(_data)
 
             label_np = _label.cpu().numpy()
-            score_np = score_supp[0,:-1].cpu().data.numpy()
+            score_np = score_supp[0,:-1].cpu().data.numpy()  #获取动作类的得分，不考虑背景类 (1,20)
 
-            score_np[np.where(score_np < config.class_thresh)] = 0
+            score_np[np.where(score_np < config.class_thresh)] = 0   # cls_thresh = 0.25
             score_np[np.where(score_np >= config.class_thresh)] = 1
 
             correct_pred = np.sum(label_np == score_np, axis=1)  # 统计的是预测的类别和label能够对应上的数目，只有20个类别全部预测正确才认为这个视频预测正确
@@ -64,13 +70,14 @@ def test(net, config, logger, test_loader, test_info, step, model_file=None):
                 
                 proposal_dict = {}
 
-                for i in range(len(config.act_thresh)):
+                for i in range(len(config.act_thresh)):  #act_thresh = np.arange(0.0, 0.25, 0.025)
                     cas_temp = cas_pred.copy() # (18000,1,1)
                     # [0,1,2,3,1531,1532,.......9910]
                     zero_location = np.where(cas_temp[:, :, 0] < config.act_thresh[i])
                     cas_temp[zero_location] = 0
 
-                    seg_list = [] # [[],[],..[]]
+                    # cas_temp: (18000,len(pred),1) 其中len(pred)为满足条件的类别数目
+                    seg_list = [] # [[],[],..[]]  # 保存每个类别的预测结果
                     for c in range(len(pred)):
                         pos = np.where(cas_temp[:, c, 0] > 0)  # [4,5,6,.....17999]
                         seg_list.append(pos)
