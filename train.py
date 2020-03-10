@@ -30,7 +30,7 @@ class BaS_Net_loss(nn.Module):
         label_base = label_base / torch.sum(label_base, dim=1, keepdim=True)  #平均每个类别的权重
         label_supp = label_supp / torch.sum(label_supp, dim=1, keepdim=True)
 
-        loss_base = self.ce_criterion(score_base, label_base)
+        loss_base = self.ce_criterion(score_base, label_base)  # score_base : (B,21) label_base: (B,21)
         loss_supp = self.ce_criterion(score_supp, label_supp)
         loss_norm = torch.mean(torch.norm(fore_weights, p=1, dim=1))  #返回输入张量给定维dim 上每行的p 范数。 
 
@@ -51,14 +51,15 @@ def train(net, train_loader, loader_iter, optimizer, criterion, logger, step):
         loader_iter = iter(train_loader)
         _data, _label, _, _, _ = next(loader_iter)
 
-    _data = _data.cuda()
-    _label = _label.cuda()
+    _data = _data.cuda()  # (B,750,2048)
+    _label = _label.cuda()  # (B,anchor_num,20)
 
     optimizer.zero_grad()
 
+    # score_base为未经抑制获得的视频级类别预测结果， score_supp为经过背景帧抑制后获得的视频分类结果
     score_base, _, score_supp, _, fore_weights = net(_data)  # (B, C+1), (B, C+1)
 
-    cost, loss = criterion(score_base, score_supp, fore_weights, _label)
+    cost, loss = criterion(score_base, score_supp, fore_weights, _label)  # cost：total_loss   loss:{'loss_base','loss_supp','loss_norm'}
 
     cost.backward()
     optimizer.step()
