@@ -31,7 +31,7 @@ if __name__ == "__main__":
                         modal=config.modal, feature_fps=config.feature_fps,
                         num_segments=config.num_segments, len_feature=config.len_feature,
                         seed=config.seed, sampling='random'),
-            batch_size=config.batch_size,
+            batch_size=config.batch_size,   # batch_size = 2
             shuffle=True, num_workers=config.num_workers,
             worker_init_fn=worker_init_fn)
 
@@ -53,10 +53,10 @@ if __name__ == "__main__":
 
     criterion = BaS_Net_loss(config.alpha)
 
-    optimizer = torch.optim.Adam(net.parameters(), lr=config.lr[0],
+    optimizer = torch.optim.Adam(net.parameters(), lr=config.lr[0],   # lr=0.0001
         betas=(0.9, 0.999), weight_decay=0.0005)
 
-    logger = Logger(config.log_path)
+    logger = Logger(config.log_path)  # tensorboard_logger里的Logger类
     
     loader_iter = iter(train_loader)
 
