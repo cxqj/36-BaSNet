@@ -28,7 +28,7 @@ num_segments： 750
 def get_proposal_oic(tList, wtcam, final_score, c_pred, scale, v_len, sampling_frames, num_segments, lambda_=0.25, gamma=0.2):
     # 24*750*25 当前拓展后每一个时序位置对应原先视频中的长度，例如当前拓展后的时序长度为18000，则当前序列中每个位置对应
     # 视频中的0.0094秒
-    t_factor = (16 * v_len) / (scale * num_segments * sampling_frames)  
+    t_factor = (16 * v_len) / (scale * num_segments * sampling_frames)  # 16*v_len为原视频帧数 / sampling_frames = 视频时长
     temp = []
     for i in range(len(tList)):
         c_temp = []
