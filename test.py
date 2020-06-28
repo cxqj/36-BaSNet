@@ -77,7 +77,7 @@ def test(net, config, logger, test_loader, test_info, step, model_file=None):
                     cas_temp[zero_location] = 0
 
                     # cas_temp: (18000,len(pred),1) 其中len(pred)为满足条件的类别数目
-                    seg_list = [] # [[],[],..[]]  # 保存每个类别的预测结果
+                    seg_list = [] # [[],[],..[]]  # 保存每个类别的预测结果,其中每一个子列表中保存对应类别着pos的索引
                     for c in range(len(pred)):
                         pos = np.where(cas_temp[:, c, 0] > 0)  # [4,5,6,.....17999]
                         seg_list.append(pos)
