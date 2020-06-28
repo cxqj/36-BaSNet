@@ -30,7 +30,7 @@ def get_proposal_oic(tList, wtcam, final_score, c_pred, scale, v_len, sampling_f
     # 视频中的0.0094秒
     t_factor = (16 * v_len) / (scale * num_segments * sampling_frames)  # 16*v_len为原视频帧数 / sampling_frames = 视频时长
     temp = []
-    for i in range(len(tList)):
+    for i in range(len(tList)):  # tList中的每一个子列表代表一类
         c_temp = []
         temp_list = np.array(tList[i])[0]
         if temp_list.any():
